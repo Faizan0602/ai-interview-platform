@@ -9,7 +9,6 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.question import Question
-    from app.models.interview_session import InterviewSession
 
 
 class Interview(Base):
@@ -54,11 +53,6 @@ class Interview(Base):
         back_populates="interview",
         cascade="all, delete-orphan",
         order_by="Question.created_at",
-    )
-    sessions: Mapped[List["InterviewSession"]] = relationship(
-        "InterviewSession",
-        back_populates="interview",
-        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

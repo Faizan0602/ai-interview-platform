@@ -5,7 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.interview import Interview
+from app.models.question import Question
 from app.schemas.interview import InterviewCreate, InterviewUpdate
+from app.services.ai_question_generator import AIQuestionGeneratorService
 
 
 class InterviewService:
@@ -13,13 +15,7 @@ class InterviewService:
 
     @staticmethod
     def create_interview(db: Session, interview_in: InterviewCreate) -> Interview:
-        """
-        Create and persist a new interview template.
-
-        :param db: SQLAlchemy database session.
-        :param interview_in: Validated interview creation payload.
-        :return: Created Interview ORM instance.
-        """
+        """Create and persist a new interview template."""
         interview = Interview(
             title=interview_in.title.strip(),
             role=interview_in.role.strip(),
@@ -32,14 +28,7 @@ class InterviewService:
 
     @staticmethod
     def get_interview(db: Session, interview_id: uuid.UUID) -> Interview:
-        """
-        Retrieve a single interview by its UUID. Raises 404 if not found.
-
-        :param db: SQLAlchemy database session.
-        :param interview_id: Primary UUID of the interview.
-        :return: Interview ORM instance.
-        :raises HTTPException: 404 Not Found if record does not exist.
-        """
+        """Retrieve a single interview by its UUID. Raises 404 if not found."""
         stmt = select(Interview).where(Interview.id == interview_id)
         interview: Optional[Interview] = db.scalar(stmt)
 
@@ -58,16 +47,7 @@ class InterviewService:
         role: Optional[str] = None,
         difficulty: Optional[str] = None,
     ) -> List[Interview]:
-        """
-        Retrieve a paginated list of interviews with optional filters.
-
-        :param db: SQLAlchemy database session.
-        :param skip: Number of records to skip for pagination.
-        :param limit: Maximum number of records to return.
-        :param role: Optional case-insensitive substring filter on role.
-        :param difficulty: Optional filter on difficulty level.
-        :return: List of Interview ORM instances.
-        """
+        """Retrieve a paginated list of interviews with optional filters."""
         stmt = select(Interview).order_by(Interview.created_at.desc())
 
         if role:
@@ -85,15 +65,7 @@ class InterviewService:
         interview_id: uuid.UUID,
         interview_in: InterviewUpdate,
     ) -> Interview:
-        """
-        Update fields of an existing interview template.
-
-        :param db: SQLAlchemy database session.
-        :param interview_id: Primary UUID of the interview to update.
-        :param interview_in: Validated payload with fields to update.
-        :return: Updated Interview ORM instance.
-        :raises HTTPException: 404 Not Found if record does not exist.
-        """
+        """Update fields of an existing interview template."""
         interview = cls.get_interview(db, interview_id)
 
         update_data = interview_in.model_dump(exclude_unset=True)
@@ -109,13 +81,55 @@ class InterviewService:
 
     @classmethod
     def delete_interview(cls, db: Session, interview_id: uuid.UUID) -> None:
-        """
-        Delete an interview template by its UUID. Cascades to associated questions/sessions.
-
-        :param db: SQLAlchemy database session.
-        :param interview_id: Primary UUID of the interview to delete.
-        :raises HTTPException: 404 Not Found if record does not exist.
-        """
+        """Delete an interview template by its UUID."""
         interview = cls.get_interview(db, interview_id)
         db.delete(interview)
         db.commit()
+
+    @classmethod
+    def generate_and_save_questions(
+        cls,
+        db: Session,
+        interview_id: uuid.UUID,
+        count: int = 5,
+        additional_context: Optional[str] = None,
+    ) -> List[Question]:
+        """
+        Generate questions automatically using Gemini and persist them under the target interview.
+
+        :param db: SQLAlchemy database session.
+        :param interview_id: UUID of the target interview template.
+        :param count: Total questions to generate.
+        :param additional_context: Optional extra guidance/topics for Gemini.
+        :return: List of newly created Question ORM objects.
+        """
+        interview = cls.get_interview(db, interview_id)
+
+        # 1. Generate questions from Gemini
+        ai_questions = AIQuestionGeneratorService.generate_questions(
+            title=interview.title,
+            role=interview.role,
+            difficulty=interview.difficulty,
+            count=count,
+            additional_context=additional_context,
+        )
+
+        # 2. Convert to ORM models and save in PostgreSQL
+        new_questions: List[Question] = []
+        for item in ai_questions:
+            q = Question(
+                interview_id=interview.id,
+                question_text=item.question_text.strip(),
+                question_type=item.question_type.strip(),
+                expected_answer=item.expected_answer.strip() if item.expected_answer else None,
+            )
+            db.add(q)
+            new_questions.append(q)
+
+        db.commit()
+
+        # 3. Refresh instances to populate IDs and timestamps
+        for q in new_questions:
+            db.refresh(q)
+
+        return new_questions

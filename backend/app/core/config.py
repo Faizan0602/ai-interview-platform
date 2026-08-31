@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = Field(
         ...,
         min_length=10,
-        description="Google Gemini API key for question generation and feedback analysis",
+        description="Google Gemini API key for question and feedback generation",
     )
 
     # Optional / Defaulted App Settings
