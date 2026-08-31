@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
     DEBUG: bool = False
     API_V1_STR: str = "/api/v1"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ALGORITHM: str = "HS256"
 
     @field_validator("DATABASE_URL")
     @classmethod
