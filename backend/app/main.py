@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+from app.api.v1.interviews import router as interviews_router
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -82,3 +83,9 @@ app.include_router(
 )
 def health_check():
     return {"status": "healthy"}
+
+
+app.include_router(
+    interviews_router,
+    prefix=settings.API_V1_STR,
+)

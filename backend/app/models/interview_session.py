@@ -1,12 +1,16 @@
 import uuid
 from datetime import datetime
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.interview import Interview
+    from app.models.answer import Answer
 
 
 class InterviewSession(Base):
@@ -35,7 +39,14 @@ class InterviewSession(Base):
         server_default=func.now(),
     )
 
-    answers = relationship(
+    # Relationship with Interview
+    interview: Mapped["Interview"] = relationship(
+        "Interview",
+        back_populates="sessions",
+    )
+
+    # Relationship with Answers
+    answers: Mapped[List["Answer"]] = relationship(
         "Answer",
         back_populates="session",
         cascade="all, delete-orphan",
