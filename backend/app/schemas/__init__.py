@@ -15,6 +15,7 @@ from app.schemas.question import (
 from app.schemas.answer import AnswerCreate, AnswerResponse
 from app.schemas.feedback import FeedbackResponse
 from app.schemas.report import InterviewReportResponse, ReportQuestionResponse
+from app.schemas.dashboard import DashboardResponse, RecentInterviewResponse
 from app.schemas.ai_generator import (
     GeneratedQuestionItem,
     GenerateQuestionsRequest,
@@ -38,6 +39,8 @@ __all__ = [
     "FeedbackResponse",
     "ReportQuestionResponse",
     "InterviewReportResponse",
+    "RecentInterviewResponse",
+    "DashboardResponse",
     "GeneratedQuestionItem",
     "GenerateQuestionsRequest",
 ]

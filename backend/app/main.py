@@ -8,6 +8,7 @@ from sqlalchemy import text
 
 from app.api.v1.answers import router as answers_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.feedback import router as feedback_router
 from app.api.v1.interviews import router as interviews_router
 from app.api.v1.questions import router as questions_router
@@ -69,6 +70,7 @@ app.include_router(interviews_router, prefix=settings.API_V1_STR)
 app.include_router(questions_router, prefix=settings.API_V1_STR)
 app.include_router(answers_router, prefix=settings.API_V1_STR)
 app.include_router(feedback_router, prefix=settings.API_V1_STR)
+app.include_router(dashboard_router, prefix=settings.API_V1_STR)
 
 
 @app.get(

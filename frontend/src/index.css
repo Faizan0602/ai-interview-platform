@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-zinc-950 antialiased;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
+  }
+
+  label {
+    @apply text-sm font-medium text-zinc-700;
+  }
+}
