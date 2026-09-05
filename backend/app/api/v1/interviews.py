@@ -15,8 +15,10 @@ from app.schemas.interview import (
     InterviewUpdate,
 )
 from app.schemas.question import QuestionResponse
+from app.schemas.report import InterviewReportResponse
 
 from app.services.interview_service import InterviewService
+from app.services.report_service import ReportService
 
 router = APIRouter(
     prefix="/interviews",
@@ -64,6 +66,26 @@ def get_all_interviews(
         limit=limit,
         role=role,
         difficulty=difficulty,
+    )
+
+
+# =========================
+# GET INTERVIEW REPORT
+# =========================
+@router.get(
+    "/{interview_id}/report",
+    response_model=InterviewReportResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_interview_report(
+    interview_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> InterviewReportResponse:
+    return ReportService.generate_interview_report(
+        db=db,
+        interview_id=interview_id,
+        user_id=current_user.id,
     )
 
 
