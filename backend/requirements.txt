@@ -11,4 +11,4 @@ bcrypt
 python-jose
 PyJWT
 email-validator
-google-generativeai
+google-genai

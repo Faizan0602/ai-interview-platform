@@ -12,39 +12,19 @@ logger = logging.getLogger("ai_interview_platform.gemini")
 
 
 class GeneratedQuestionItem(BaseModel):
-    """Single AI-generated interview question."""
-
-    question_text: str = Field(
-        ...,
-        min_length=5,
-        description="Interview question text",
-    )
-
-    question_type: str = Field(
-        ...,
-        description="Technical, Behavioral, System Design, Coding, etc.",
-    )
-
-    expected_answer: str = Field(
-        ...,
-        min_length=10,
-        description="Expected answer and evaluation criteria",
-    )
+    question_text: str = Field(..., min_length=5)
+    question_type: str
+    expected_answer: str = Field(..., min_length=10)
 
 
 class GeneratedQuestionsResponse(BaseModel):
-    """Wrapper schema for Gemini structured output."""
-
     questions: List[GeneratedQuestionItem]
 
 
 class AIQuestionGeneratorService:
-    """Gemini-powered interview question generator."""
 
     @classmethod
-    def _get_client(cls) -> genai.Client:
-        """Create Gemini client."""
-
+    def _get_client(cls):
         if (
             not settings.GEMINI_API_KEY
             or settings.GEMINI_API_KEY.startswith("your-")
@@ -64,11 +44,7 @@ class AIQuestionGeneratorService:
         difficulty: str,
         count: int = 5,
         additional_context: Optional[str] = None,
-    ) -> List[GeneratedQuestionItem]:
-        """
-        Generate interview questions using Gemini.
-        """
-
+    ):
         client = cls._get_client()
 
         system_instruction = """
@@ -96,7 +72,7 @@ class AIQuestionGeneratorService:
 
         try:
             response = client.models.generate_content(
-                model="gemini-3-flash-preview",
+                model="gemini-2.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
@@ -106,13 +82,10 @@ class AIQuestionGeneratorService:
                 ),
             )
 
-            parsed: GeneratedQuestionsResponse = response.parsed
+            parsed = response.parsed
 
             if not parsed:
                 raise ValueError("Gemini returned empty response.")
-
-            if not parsed.questions:
-                raise ValueError("No questions generated.")
 
             return parsed.questions[:count]
 
