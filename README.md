@@ -42,7 +42,7 @@ https://ai-interview-platform-backend-c9qw.onrender.com/docs
 
 # 🏗️ System Architecture
 
-![System Architecture](screenshot/architecture.png)
+![System Architecture](screenshots/architecture.png)
 
 ---
 
